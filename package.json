@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "esbuild src/server.ts --platform=node --bundle --outfile=dist/server.js --format=cjs",
+    "dev": "ts-node-dev src/server.ts",
+    "build": "tsc",
     "start": "node dist/server.js"
   },
   "keywords": [],
