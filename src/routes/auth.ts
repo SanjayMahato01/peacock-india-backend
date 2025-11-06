@@ -1,6 +1,5 @@
 import { Hono } from 'hono'
 import { sign } from 'hono/jwt'
-import { setCookie } from 'hono/cookie'
 import bcrypt from 'bcryptjs'
 import { prisma } from '../lib/prisma'
 import { authMiddleware } from '../middleware/auth'
@@ -9,20 +8,7 @@ import { loginSchema, signupSchema } from '../validation/schemas'
 
 const app = new Hono()
 
-// Cookie configuration - Works for both dev and production
-const getCookieOptions = (maxAge: number = 86400) => {
-  const isProduction = process.env.NODE_ENV === 'production'
-  
-  return {
-    httpOnly: true,
-    secure: isProduction, // true in production, false in dev
-    sameSite: isProduction ? ('none' as const) : ('lax' as const),
-    maxAge,
-    path: '/',
-  }
-}
-
-// Signup route
+// Signup route - Returns token instead of cookie
 app.post('/signup', validate(signupSchema), async (c) => {
   try {
     const validatedData = c.get('validatedBody')
@@ -53,13 +39,15 @@ app.post('/signup', validate(signupSchema), async (c) => {
 
     // Generate JWT token
     const token = await sign(
-      { userId: user.id, email: user.email },
+      { 
+        userId: user.id, 
+        email: user.email,
+        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hours
+      },
       process.env.JWT_SECRET!
     )
 
-    // Set cookie with proper configuration
-    setCookie(c, 'auth_token', token, getCookieOptions())
-
+    // Return token in response - Frontend stores it
     return c.json({
       message: 'User created successfully',
       user: {
@@ -79,7 +67,7 @@ app.post('/signup', validate(signupSchema), async (c) => {
   }
 })
 
-// Login route
+// Login route - Returns token instead of cookie
 app.post('/login', validate(loginSchema), async (c) => {
   try {
     const validatedData = c.get('validatedBody')
@@ -108,13 +96,15 @@ app.post('/login', validate(loginSchema), async (c) => {
 
     // Generate JWT token
     const token = await sign(
-      { userId: user.id, email: user.email },
+      { 
+        userId: user.id, 
+        email: user.email,
+        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hours
+      },
       process.env.JWT_SECRET!
     )
 
-    // Set cookie with proper configuration
-    setCookie(c, 'auth_token', token, getCookieOptions())
-
+    // Return token in response - Frontend stores it
     return c.json({
       message: 'Login successful',
       user: {
@@ -134,9 +124,8 @@ app.post('/login', validate(loginSchema), async (c) => {
   }
 })
 
-// Logout route
+// Logout route - Just returns success (frontend clears token)
 app.post('/logout', (c) => {
-  setCookie(c, 'auth_token', '', getCookieOptions(0)) // maxAge: 0
   return c.json({ message: 'Logged out successfully' })
 })
 
