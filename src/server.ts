@@ -15,7 +15,7 @@ const app = new Hono()
 console.log(process.env.DATABASE_URL);
 app.use('*', logger())
 app.use('*', cors({
-  origin: [process.env.FRONTEND_URL!],
+  origin: '*',
   credentials: true,
 }))
 
