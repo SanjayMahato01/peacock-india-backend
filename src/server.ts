@@ -14,9 +14,14 @@ const app = new Hono()
 // Middleware
 console.log(process.env.DATABASE_URL);
 app.use('*', logger())
-app.use('*', cors({
-  origin: [process.env.FRONTEND_URL!],
+
+app.use('/*', cors({
+  origin: process.env.FRONTEND_URL || 'https://peacock-india-frontend.vercel.app',
   credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  exposeHeaders: ['Set-Cookie'],
+  maxAge: 600,
 }))
 
 // Base route
