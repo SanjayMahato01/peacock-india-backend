@@ -52,7 +52,7 @@ app.post('/signup', validate(signupSchema), async (c) => {
       sameSite: 'none',
       maxAge: 86400, // 24 hours
       path: '/',
-       domain: isProduction ? "https://peacock-india-frontend.vercel.app" : "localhost",
+       domain: isProduction ? "peacock-india-frontend.vercel.app" : "localhost",
     })
 
     return c.json({
@@ -114,7 +114,7 @@ app.post('/login', validate(loginSchema), async (c) => {
       sameSite: 'none',
       maxAge: 86400, // 24 hours
       path: '/',
-     domain: isProduction ? "https://peacock-india-frontend.vercel.app" : "localhost",
+     domain: isProduction ? "peacock-india-frontend.vercel.app" : "localhost",
     })
 
     return c.json({
@@ -144,7 +144,7 @@ app.post('/logout', (c) => {
     sameSite: 'none',
     maxAge: 0, // Expire immediately
     path: '/',
-     domain: isProduction ? "https://peacock-india-frontend.vercel.app" : "localhost",
+     domain: isProduction ? "peacock-india-frontend.vercel.app" : "localhost",
   })
   return c.json({ message: 'Logged out successfully' })
 })
