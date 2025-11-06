@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "dev": "ts-node-dev src/server.ts",
-    "build": "tsc",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup src/server.ts --format cjs --out-dir dist --clean",
     "start": "node dist/server.js"
   },
   "keywords": [],
