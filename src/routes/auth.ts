@@ -1,13 +1,26 @@
 import { Hono } from 'hono'
 import { sign } from 'hono/jwt'
 import { setCookie } from 'hono/cookie'
-import bcrypt from 'bcryptjs' // Fixed import
+import bcrypt from 'bcryptjs'
 import { prisma } from '../lib/prisma'
 import { authMiddleware } from '../middleware/auth'
 import { validate } from '../middleware/validation'
 import { loginSchema, signupSchema } from '../validation/schemas'
 
 const app = new Hono()
+
+// Cookie configuration - Works for both dev and production
+const getCookieOptions = (maxAge: number = 86400) => {
+  const isProduction = process.env.NODE_ENV === 'production'
+  
+  return {
+    httpOnly: true,
+    secure: isProduction, // true in production, false in dev
+    sameSite: isProduction ? ('none' as const) : ('lax' as const),
+    maxAge,
+    path: '/',
+  }
+}
 
 // Signup route
 app.post('/signup', validate(signupSchema), async (c) => {
@@ -26,7 +39,7 @@ app.post('/signup', validate(signupSchema), async (c) => {
       }, 400)
     }
 
-    // Hash password - FIXED: using bcrypt directly
+    // Hash password
     const hashedPassword = await bcrypt.hash(validatedData.password, 12)
 
     // Create user
@@ -44,14 +57,8 @@ app.post('/signup', validate(signupSchema), async (c) => {
       process.env.JWT_SECRET!
     )
 
-    // Set cookie - FIXED: using setCookie function
-    setCookie(c, 'auth_token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: 86400, // 24 hours
-      path: '/',
-    })
+    // Set cookie with proper configuration
+    setCookie(c, 'auth_token', token, getCookieOptions())
 
     return c.json({
       message: 'User created successfully',
@@ -89,7 +96,7 @@ app.post('/login', validate(loginSchema), async (c) => {
       }, 401)
     }
 
-    // Verify password - FIXED: using bcrypt directly
+    // Verify password
     const isValidPassword = await bcrypt.compare(validatedData.password, user.password)
 
     if (!isValidPassword) {
@@ -105,14 +112,8 @@ app.post('/login', validate(loginSchema), async (c) => {
       process.env.JWT_SECRET!
     )
 
-    // Set cookie - FIXED: using setCookie function
-    setCookie(c, 'auth_token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: 86400, // 24 hours
-      path: '/',
-    })
+    // Set cookie with proper configuration
+    setCookie(c, 'auth_token', token, getCookieOptions())
 
     return c.json({
       message: 'Login successful',
@@ -135,13 +136,7 @@ app.post('/login', validate(loginSchema), async (c) => {
 
 // Logout route
 app.post('/logout', (c) => {
-  setCookie(c, 'auth_token', '', {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 0, // Expire immediately
-    path: '/',
-  })
+  setCookie(c, 'auth_token', '', getCookieOptions(0)) // maxAge: 0
   return c.json({ message: 'Logged out successfully' })
 })
 
