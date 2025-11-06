@@ -48,7 +48,7 @@ app.post('/signup', validate(signupSchema), async (c) => {
     setCookie(c, 'auth_token', token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
+      sameSite: 'None',
       maxAge: 86400, // 24 hours
       path: '/',
     })
@@ -109,7 +109,7 @@ app.post('/login', validate(loginSchema), async (c) => {
     setCookie(c, 'auth_token', token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
+      sameSite: 'None',
       maxAge: 86400, // 24 hours
       path: '/',
     })
@@ -137,8 +137,8 @@ app.post('/login', validate(loginSchema), async (c) => {
 app.post('/logout', (c) => {
   setCookie(c, 'auth_token', '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'None',
     maxAge: 0, // Expire immediately
     path: '/',
   })
