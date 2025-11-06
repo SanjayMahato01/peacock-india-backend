@@ -5,18 +5,17 @@ import { cors } from 'hono/cors'
 import { showRoutes } from 'hono/dev'
 import 'dotenv/config';
 
-import authRoutes from './routes/auth'
-import healthRoutes from './routes/health'
-import aiRoutes from './routes/ai'
+import authRoutes from './routes/auth.js'
+import healthRoutes from './routes/health.js'
+import aiRoutes from './routes/ai.js'
 import notesRoutes from './routes/notes'
 const app = new Hono()
 
 // Middleware
 console.log(process.env.DATABASE_URL);
 app.use('*', logger())
-
 app.use('*', cors({
-  origin: '*',
+  origin: [process.env.FRONTEND_URL!],
   credentials: true,
 }))
 
