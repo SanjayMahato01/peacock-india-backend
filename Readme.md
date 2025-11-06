@@ -30,7 +30,7 @@ A full-stack notes application built with **Hono.js** that allows users to **sig
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/peacock-india-notes-app.git
+git clone https://github.com/SanjayMahato01/peacock-india-backend.git
 cd peacock-india-notes-app
 
 Install dependencies
@@ -46,6 +46,13 @@ DATABASE_URL="your_database_connection_string"
 OPENAI_API_KEY="your_openai_api_key"
 JWT_SECRET="your_jwt_secret"
 PORT=5001
+
+
+Prisma Setup
+
+npx prisma generate        
+npx prisma db push   
+
 
 
 Run the application
