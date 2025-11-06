@@ -8,6 +8,7 @@ import { validate } from '../middleware/validation'
 import { loginSchema, signupSchema } from '../validation/schemas'
 
 const app = new Hono()
+const isProduction = process.env.NODE_ENV
 
 // Signup route
 app.post('/signup', validate(signupSchema), async (c) => {
@@ -51,6 +52,7 @@ app.post('/signup', validate(signupSchema), async (c) => {
       sameSite: 'none',
       maxAge: 86400, // 24 hours
       path: '/',
+       domain: isProduction ? "https://peacock-india-frontend.vercel.app" : "localhost",
     })
 
     return c.json({
@@ -112,6 +114,7 @@ app.post('/login', validate(loginSchema), async (c) => {
       sameSite: 'none',
       maxAge: 86400, // 24 hours
       path: '/',
+     domain: isProduction ? "https://peacock-india-frontend.vercel.app" : "localhost",
     })
 
     return c.json({
@@ -141,6 +144,7 @@ app.post('/logout', (c) => {
     sameSite: 'none',
     maxAge: 0, // Expire immediately
     path: '/',
+     domain: isProduction ? "https://peacock-india-frontend.vercel.app" : "localhost",
   })
   return c.json({ message: 'Logged out successfully' })
 })
