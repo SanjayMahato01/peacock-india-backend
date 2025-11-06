@@ -47,7 +47,7 @@ app.post('/signup', validate(signupSchema), async (c) => {
     // Set cookie - FIXED: using setCookie function
     setCookie(c, 'auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'none',
       maxAge: 86400, // 24 hours
       path: '/',
