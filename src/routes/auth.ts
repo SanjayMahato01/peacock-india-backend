@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { sign } from 'hono/jwt'
-import bcrypt from 'bcryptjs'
+import { setCookie } from 'hono/cookie'
+import bcrypt from 'bcryptjs' // Fixed import
 import { prisma } from '../lib/prisma'
 import { authMiddleware } from '../middleware/auth'
 import { validate } from '../middleware/validation'
@@ -8,7 +9,7 @@ import { loginSchema, signupSchema } from '../validation/schemas'
 
 const app = new Hono()
 
-// Signup route - Returns token instead of cookie
+// Signup route
 app.post('/signup', validate(signupSchema), async (c) => {
   try {
     const validatedData = c.get('validatedBody')
@@ -25,7 +26,7 @@ app.post('/signup', validate(signupSchema), async (c) => {
       }, 400)
     }
 
-    // Hash password
+    // Hash password - FIXED: using bcrypt directly
     const hashedPassword = await bcrypt.hash(validatedData.password, 12)
 
     // Create user
@@ -39,15 +40,20 @@ app.post('/signup', validate(signupSchema), async (c) => {
 
     // Generate JWT token
     const token = await sign(
-      { 
-        userId: user.id, 
-        email: user.email,
-        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hours
-      },
+      { userId: user.id, email: user.email },
       process.env.JWT_SECRET!
     )
 
-    // Return token in response - Frontend stores it
+    // Set cookie - FIXED: using setCookie function
+    setCookie(c, 'auth_token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 86400, // 24 hours
+      path: '/',
+       domain: '.vercel.app',
+    })
+
     return c.json({
       message: 'User created successfully',
       user: {
@@ -67,7 +73,7 @@ app.post('/signup', validate(signupSchema), async (c) => {
   }
 })
 
-// Login route - Returns token instead of cookie
+// Login route
 app.post('/login', validate(loginSchema), async (c) => {
   try {
     const validatedData = c.get('validatedBody')
@@ -84,7 +90,7 @@ app.post('/login', validate(loginSchema), async (c) => {
       }, 401)
     }
 
-    // Verify password
+    // Verify password - FIXED: using bcrypt directly
     const isValidPassword = await bcrypt.compare(validatedData.password, user.password)
 
     if (!isValidPassword) {
@@ -96,15 +102,20 @@ app.post('/login', validate(loginSchema), async (c) => {
 
     // Generate JWT token
     const token = await sign(
-      { 
-        userId: user.id, 
-        email: user.email,
-        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hours
-      },
+      { userId: user.id, email: user.email },
       process.env.JWT_SECRET!
     )
 
-    // Return token in response - Frontend stores it
+    // Set cookie - FIXED: using setCookie function
+    setCookie(c, 'auth_token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 86400, // 24 hours
+      path: '/',
+       domain: '.vercel.app',
+    })
+
     return c.json({
       message: 'Login successful',
       user: {
@@ -124,8 +135,16 @@ app.post('/login', validate(loginSchema), async (c) => {
   }
 })
 
-// Logout route - Just returns success (frontend clears token)
+// Logout route
 app.post('/logout', (c) => {
+  setCookie(c, 'auth_token', '', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    maxAge: 0, // Expire immediately
+    path: '/',
+    domain: '.vercel.app',
+  })
   return c.json({ message: 'Logged out successfully' })
 })
 

@@ -6,23 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const hono_1 = require("hono");
 const jwt_1 = require("hono/jwt");
 const cookie_1 = require("hono/cookie");
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const bcryptjs_1 = __importDefault(require("bcryptjs")); // Fixed import
 const prisma_1 = require("../lib/prisma");
 const auth_1 = require("../middleware/auth");
 const validation_1 = require("../middleware/validation");
 const schemas_1 = require("../validation/schemas");
 const app = new hono_1.Hono();
-// Cookie configuration - Works for both dev and production
-const getCookieOptions = (maxAge = 86400) => {
-    const isProduction = process.env.NODE_ENV === 'production';
-    return {
-        httpOnly: true,
-        secure: isProduction, // true in production, false in dev
-        sameSite: isProduction ? 'none' : 'lax',
-        maxAge,
-        path: '/',
-    };
-};
 // Signup route
 app.post('/signup', (0, validation_1.validate)(schemas_1.signupSchema), async (c) => {
     try {
@@ -37,7 +26,7 @@ app.post('/signup', (0, validation_1.validate)(schemas_1.signupSchema), async (c
                 details: [{ message: 'Email already registered' }]
             }, 400);
         }
-        // Hash password
+        // Hash password - FIXED: using bcrypt directly
         const hashedPassword = await bcryptjs_1.default.hash(validatedData.password, 12);
         // Create user
         const user = await prisma_1.prisma.user.create({
@@ -49,8 +38,15 @@ app.post('/signup', (0, validation_1.validate)(schemas_1.signupSchema), async (c
         });
         // Generate JWT token
         const token = await (0, jwt_1.sign)({ userId: user.id, email: user.email }, process.env.JWT_SECRET);
-        // Set cookie with proper configuration
-        (0, cookie_1.setCookie)(c, 'auth_token', token, getCookieOptions());
+        // Set cookie - FIXED: using setCookie function
+        (0, cookie_1.setCookie)(c, 'auth_token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            maxAge: 86400, // 24 hours
+            path: '/',
+            domain: '.vercel.app',
+        });
         return c.json({
             message: 'User created successfully',
             user: {
@@ -83,7 +79,7 @@ app.post('/login', (0, validation_1.validate)(schemas_1.loginSchema), async (c) 
                 details: [{ message: 'Invalid credentials' }]
             }, 401);
         }
-        // Verify password
+        // Verify password - FIXED: using bcrypt directly
         const isValidPassword = await bcryptjs_1.default.compare(validatedData.password, user.password);
         if (!isValidPassword) {
             return c.json({
@@ -93,8 +89,15 @@ app.post('/login', (0, validation_1.validate)(schemas_1.loginSchema), async (c) 
         }
         // Generate JWT token
         const token = await (0, jwt_1.sign)({ userId: user.id, email: user.email }, process.env.JWT_SECRET);
-        // Set cookie with proper configuration
-        (0, cookie_1.setCookie)(c, 'auth_token', token, getCookieOptions());
+        // Set cookie - FIXED: using setCookie function
+        (0, cookie_1.setCookie)(c, 'auth_token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            maxAge: 86400, // 24 hours
+            path: '/',
+            domain: '.vercel.app',
+        });
         return c.json({
             message: 'Login successful',
             user: {
@@ -115,7 +118,14 @@ app.post('/login', (0, validation_1.validate)(schemas_1.loginSchema), async (c) 
 });
 // Logout route
 app.post('/logout', (c) => {
-    (0, cookie_1.setCookie)(c, 'auth_token', '', getCookieOptions(0)); // maxAge: 0
+    (0, cookie_1.setCookie)(c, 'auth_token', '', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 0, // Expire immediately
+        path: '/',
+        domain: '.vercel.app',
+    });
     return c.json({ message: 'Logged out successfully' });
 });
 // Get current user
