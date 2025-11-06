@@ -8,7 +8,6 @@ import { validate } from '../middleware/validation'
 import { loginSchema, signupSchema } from '../validation/schemas'
 
 const app = new Hono()
-const isProduction = process.env.NODE_ENV
 
 // Signup route
 app.post('/signup', validate(signupSchema), async (c) => {
@@ -48,11 +47,10 @@ app.post('/signup', validate(signupSchema), async (c) => {
     // Set cookie - FIXED: using setCookie function
     setCookie(c, 'auth_token', token, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'none',
       maxAge: 86400, // 24 hours
       path: '/',
-       domain: isProduction ? "peacock-india-frontend.vercel.app" : "localhost",
     })
 
     return c.json({
@@ -110,11 +108,10 @@ app.post('/login', validate(loginSchema), async (c) => {
     // Set cookie - FIXED: using setCookie function
     setCookie(c, 'auth_token', token, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'none',
       maxAge: 86400, // 24 hours
       path: '/',
-     domain: isProduction ? "peacock-india-frontend.vercel.app" : "localhost",
     })
 
     return c.json({
@@ -140,11 +137,10 @@ app.post('/login', validate(loginSchema), async (c) => {
 app.post('/logout', (c) => {
   setCookie(c, 'auth_token', '', {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'none',
     maxAge: 0, // Expire immediately
     path: '/',
-     domain: isProduction ? "peacock-india-frontend.vercel.app" : "localhost",
   })
   return c.json({ message: 'Logged out successfully' })
 })
