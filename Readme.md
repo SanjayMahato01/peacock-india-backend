@@ -31,7 +31,7 @@ A full-stack notes application built with **Hono.js** that allows users to **sig
 1. **Clone the repository**
 ```bash
 git clone https://github.com/SanjayMahato01/peacock-india-backend.git
-cd peacock-india-notes-app
+cd peacock-india-backend
 
 Install dependencies
 
