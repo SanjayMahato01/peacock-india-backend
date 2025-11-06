@@ -14,6 +14,7 @@ const app = new Hono()
 // Middleware
 console.log(process.env.DATABASE_URL);
 app.use('*', logger())
+
 app.use('*', cors({
   origin: '*',
   credentials: true,
